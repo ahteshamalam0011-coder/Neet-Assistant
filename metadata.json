@@ -1,0 +1,6 @@
+{
+  "name": "neet assistant — Personal Learning OS",
+  "description": "Privacy-first, local-first personal learning operating system featuring intelligent study planning, spaced repetition, mastery tracking, mock-test diagnostics, and deep-work tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
