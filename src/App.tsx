@@ -12,6 +12,7 @@ import { KnowledgeBase } from './components/KnowledgeBase';
 import { FocusTimer } from './components/FocusTimer';
 import { BackupPrivacyModal } from './components/BackupPrivacyModal';
 import { AICopilotModal } from './components/AICopilotModal';
+import { INITIAL_NEET_TOPICS } from './data/defaultSyllabus';
 import { ShieldAlert, X, Clock, Play } from 'lucide-react';
 
 export default function App() {
@@ -176,6 +177,13 @@ export default function App() {
     }));
   };
 
+  const handleLoadNeetTemplate = () => {
+    setState((prev) => ({
+      ...prev,
+      topics: INITIAL_NEET_TOPICS,
+    }));
+  };
+
   const handleDismissNotice = () => {
     setShowPrivacyNotice(false);
     setState((prev) => ({
@@ -234,6 +242,7 @@ export default function App() {
             onStartFocus={() => setIsFocusTimerOpen(true)}
             onTogglePlanItem={handleTogglePlanItem}
             onQuickAddPlanItem={handleQuickAddPlanItem}
+            onLoadNeetTemplate={handleLoadNeetTemplate}
           />
         )}
 
@@ -252,6 +261,7 @@ export default function App() {
             onUpdateTopic={handleUpdateTopic}
             onAddTopic={handleAddTopic}
             onDeleteTopic={handleDeleteTopic}
+            onLoadNeetTemplate={handleLoadNeetTemplate}
           />
         )}
 

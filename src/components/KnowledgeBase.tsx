@@ -123,8 +123,30 @@ export const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
       </div>
 
       {/* Notes Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredNotes.map((note) => (
+      {notes.length === 0 ? (
+        <div className="p-12 text-center bg-slate-900/40 rounded-xl border border-slate-800 space-y-3">
+          <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 text-emerald-400 flex items-center justify-center mx-auto">
+            <BookOpen className="w-6 h-6" />
+          </div>
+          <h4 className="text-base font-bold text-white">Knowledge Vault is Fresh & Empty</h4>
+          <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+            Record high-yield concepts, NCERT exceptions, key formulas, and mnemonics as you study.
+          </p>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors shadow-sm mt-2"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Create First Note</span>
+          </button>
+        </div>
+      ) : filteredNotes.length === 0 ? (
+        <div className="p-8 text-center text-xs text-slate-400 bg-slate-900/30 rounded-xl border border-slate-800">
+          No knowledge notes match current search or subject filter.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredNotes.map((note) => (
           <div
             key={note.id}
             className="p-5 rounded-xl bg-slate-900/40 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition-colors space-y-4"
@@ -188,6 +210,7 @@ export const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({
           </div>
         ))}
       </div>
+      )}
 
       {/* Add Note Modal */}
       {showAddModal && (

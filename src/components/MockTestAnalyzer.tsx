@@ -262,130 +262,165 @@ export const MockTestAnalyzer: React.FC<MockTestAnalyzerProps> = ({
       {/* TAB 1: MOCK TESTS */}
       {activeSubTab === 'mocks' && (
         <div className="space-y-6">
-          {latestMock ? (
-            <div className="bg-slate-900/40 rounded-xl border border-slate-800 p-6 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-4">
-                <div>
-                  <div className="flex items-center gap-2 text-xs text-slate-400 font-mono mb-1">
-                    <span>{latestMock.date}</span>
-                    <span aria-hidden="true">·</span>
-                    <span className="text-emerald-400 font-medium">{latestMock.examFormat}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{latestMock.timeTakenMinutes} minutes</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-white">{latestMock.title}</h3>
-                </div>
-
-                <div className="flex items-baseline gap-3">
-                  <div className="text-right">
-                    <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
-                      {latestMock.score}
-                      <span className="text-xs text-slate-400 font-normal"> / 720</span>
-                    </div>
-                    <div className="text-xs text-emerald-400 font-mono">
-                      {latestMock.percentile}% Percentile · {latestMock.accuracy}% Accuracy
-                    </div>
-                  </div>
-                </div>
+          {mockTests.length === 0 ? (
+            <div className="p-12 text-center bg-slate-900/40 rounded-xl border border-slate-800 space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 text-rose-400 flex items-center justify-center mx-auto">
+                <Zap className="w-6 h-6" />
               </div>
-
-              {/* Subject Breakdown Strip */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {Object.entries(latestMock.subjects || {}).map(([subj, data]) => {
-                  if (!data) return null;
-                  const lost = data.incorrect * 5; // 4 missed + 1 negative mark
-                  return (
-                    <div key={subj} className="p-4 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
-                      <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-                        <span className="text-white font-medium">{subj}</span>
-                        <span>Max 180</span>
-                      </div>
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-xl font-bold text-white font-mono tabular-nums">
-                          {data.marksObtained}
-                        </span>
-                        <span className="text-xs text-rose-400 font-mono tabular-nums">
-                          -{lost} marks lost
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400 font-mono pt-1 border-t border-slate-850">
-                        <span className="text-emerald-400">{data.correct} correct</span>
-                        <span aria-hidden="true">·</span>
-                        <span className="text-rose-400">{data.incorrect} wrong (-{data.incorrect})</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Diagnostic Root Cause Waterfall */}
-              <div className="p-4 rounded-lg bg-slate-950 border border-slate-800 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-rose-400">
-                    <Zap className="w-4 h-4" />
-                    <span>Negative Marking Root-Cause Breakdown</span>
-                  </div>
-                  <div className="text-xs font-mono text-slate-400">
-                    Total penalty: -{latestMock.totalNegativeMarks} marks
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                  <div>
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      <span className="font-semibold text-white">Analyzer Diagnosis: </span>
-                      {latestMock.analysisNotes}
-                    </p>
-                  </div>
-                  <div className="bg-slate-900 p-3 rounded border border-slate-800">
-                    <div className="text-xs font-semibold text-emerald-400 mb-1">
-                      Actionable Prescription for Next Mock:
-                    </div>
-                    <div className="text-xs text-slate-300">
-                      {latestMock.priorityFixForNextTest}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <h4 className="text-base font-bold text-white">No Mock Tests Logged Yet</h4>
+              <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+                Analyze negative marking, subject-wise scores, and percentile trajectories. Log your first full-length test to start root-cause analysis.
+              </p>
+              <button
+                onClick={() => setShowLogMockModal(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors shadow-sm mt-2"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Log First Mock Test</span>
+              </button>
             </div>
           ) : (
-            <div className="p-8 text-center bg-slate-900/30 rounded-xl border border-slate-800 text-slate-400 text-xs">
-              No mock tests recorded yet. Click "Log Mock Test" to evaluate your performance.
-            </div>
-          )}
+            <>
+              {latestMock && (
+                <div className="bg-slate-900/40 rounded-xl border border-slate-800 p-6 space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 text-xs text-slate-400 font-mono mb-1">
+                        <span>{latestMock.date}</span>
+                        <span aria-hidden="true">·</span>
+                        <span className="text-emerald-400 font-medium">{latestMock.examFormat}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>{latestMock.timeTakenMinutes} minutes</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-white">{latestMock.title}</h3>
+                    </div>
 
-          {/* Historical Mock Log List */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-bold text-white">All Logged Mock Tests</h4>
-            <div className="bg-slate-900/30 rounded-xl border border-slate-800 divide-y divide-slate-800">
-              {mockTests.map((t) => (
-                <div key={t.id} className="p-4 flex items-center justify-between gap-4 text-xs">
-                  <div>
-                    <div className="font-semibold text-white">{t.title}</div>
-                    <div className="text-slate-400 font-mono mt-0.5">
-                      {t.date} · {t.timeTakenMinutes}m · {t.accuracy}% Accuracy
+                    <div className="flex items-baseline gap-3">
+                      <div className="text-right">
+                        <div className="text-3xl font-extrabold text-white font-mono tabular-nums">
+                          {latestMock.score}
+                          <span className="text-xs text-slate-400 font-normal"> / 720</span>
+                        </div>
+                        <div className="text-xs text-emerald-400 font-mono">
+                          {latestMock.percentile}% Percentile · {latestMock.accuracy}% Accuracy
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right font-mono">
-                    <div className="text-base font-bold text-emerald-400 tabular-nums">
-                      {t.score} / 720
+
+                  {/* Subject Breakdown Strip */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {Object.entries(latestMock.subjects || {}).map(([subj, data]) => {
+                      if (!data) return null;
+                      const lost = data.incorrect * 5; // 4 missed + 1 negative mark
+                      return (
+                        <div key={subj} className="p-4 rounded-lg bg-slate-950 border border-slate-800 space-y-2">
+                          <div className="flex items-center justify-between text-xs font-mono text-slate-400">
+                            <span className="text-white font-medium">{subj}</span>
+                            <span>Max 180</span>
+                          </div>
+                          <div className="flex items-baseline justify-between">
+                            <span className="text-xl font-bold text-white font-mono tabular-nums">
+                              {data.marksObtained}
+                            </span>
+                            <span className="text-xs text-rose-400 font-mono tabular-nums">
+                              -{lost} marks lost
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] text-slate-400 font-mono pt-1 border-t border-slate-850">
+                            <span className="text-emerald-400">{data.correct} correct</span>
+                            <span aria-hidden="true">·</span>
+                            <span className="text-rose-400">{data.incorrect} wrong (-{data.incorrect})</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Diagnostic Root Cause Waterfall */}
+                  <div className="p-4 rounded-lg bg-slate-950 border border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-bold text-rose-400">
+                        <Zap className="w-4 h-4" />
+                        <span>Negative Marking Root-Cause Breakdown</span>
+                      </div>
+                      <div className="text-xs font-mono text-slate-400">
+                        Total penalty: -{latestMock.totalNegativeMarks} marks
+                      </div>
                     </div>
-                    <div className="text-slate-400 text-[11px]">
-                      -{t.totalNegativeMarks} neg marks
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                      <div>
+                        <p className="text-xs text-slate-300 leading-relaxed">
+                          <span className="font-semibold text-white">Analyzer Diagnosis: </span>
+                          {latestMock.analysisNotes}
+                        </p>
+                      </div>
+                      <div className="bg-slate-900 p-3 rounded border border-slate-800">
+                        <div className="text-xs font-semibold text-emerald-400 mb-1">
+                          Actionable Prescription for Next Mock:
+                        </div>
+                        <div className="text-xs text-slate-300">
+                          {latestMock.priorityFixForNextTest}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              )}
+
+              {/* Historical Mock Log List */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-bold text-white">All Logged Mock Tests</h4>
+                <div className="bg-slate-900/30 rounded-xl border border-slate-800 divide-y divide-slate-800">
+                  {mockTests.map((t) => (
+                    <div key={t.id} className="p-4 flex items-center justify-between gap-4 text-xs">
+                      <div>
+                        <div className="font-semibold text-white">{t.title}</div>
+                        <div className="text-slate-400 font-mono mt-0.5">
+                          {t.date} · {t.timeTakenMinutes}m · {t.accuracy}% Accuracy
+                        </div>
+                      </div>
+                      <div className="text-right font-mono">
+                        <div className="text-base font-bold text-emerald-400 tabular-nums">
+                          {t.score} / 720
+                        </div>
+                        <div className="text-slate-400 text-[11px]">
+                          -{t.totalNegativeMarks} neg marks
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {/* TAB 2: PRACTICE DRILLS */}
       {activeSubTab === 'practice' && (
         <div className="space-y-4">
-          <div className="bg-slate-900/30 rounded-xl border border-slate-800 divide-y divide-slate-800">
-            {practiceLogs.map((p) => {
+          {practiceLogs.length === 0 ? (
+            <div className="p-12 text-center bg-slate-900/40 rounded-xl border border-slate-800 space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 text-emerald-400 flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h4 className="text-base font-bold text-white">No Practice Batches Logged Yet</h4>
+              <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+                Log your daily question practice drills (accuracy, speed in seconds per question, and error takeaways).
+              </p>
+              <button
+                onClick={() => setShowLogPracticeModal(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors shadow-sm mt-2"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Log MCQ Practice Batch</span>
+              </button>
+            </div>
+          ) : (
+            <div className="bg-slate-900/30 rounded-xl border border-slate-800 divide-y divide-slate-800">
+              {practiceLogs.map((p) => {
               const speedSec = Math.round((p.timeSpentMinutes * 60) / p.questionsAttempted);
               const acc = Math.round((p.correctCount / p.questionsAttempted) * 100);
 
@@ -438,6 +473,7 @@ export const MockTestAnalyzer: React.FC<MockTestAnalyzerProps> = ({
               );
             })}
           </div>
+          )}
         </div>
       )}
 

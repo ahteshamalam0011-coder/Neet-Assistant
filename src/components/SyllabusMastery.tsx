@@ -18,6 +18,7 @@ interface SyllabusMasteryProps {
   onUpdateTopic: (updatedTopic: TopicItem) => void;
   onAddTopic: (newTopic: TopicItem) => void;
   onDeleteTopic: (topicId: string) => void;
+  onLoadNeetTemplate?: () => void;
 }
 
 export const SyllabusMastery: React.FC<SyllabusMasteryProps> = ({
@@ -25,6 +26,7 @@ export const SyllabusMastery: React.FC<SyllabusMasteryProps> = ({
   onUpdateTopic,
   onAddTopic,
   onDeleteTopic,
+  onLoadNeetTemplate,
 }) => {
   const [selectedSubject, setSelectedSubject] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -150,7 +152,37 @@ export const SyllabusMastery: React.FC<SyllabusMasteryProps> = ({
       {/* Topics Table / Grid */}
       <div className="bg-slate-900/30 rounded-xl border border-slate-800 overflow-hidden">
         <div className="divide-y divide-slate-800/80">
-          {filteredTopics.length === 0 ? (
+          {topics.length === 0 ? (
+            <div className="p-12 text-center space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 text-emerald-400 flex items-center justify-center mx-auto">
+                <BookOpen className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-base font-bold text-white">Your Syllabus Matrix is Fresh & Empty</h4>
+                <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+                  Start tracking your genuine understanding vs familiarity illusions. Add custom chapters or load the standard NEET UG syllabus with one click.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                {onLoadNeetTemplate && (
+                  <button
+                    onClick={onLoadNeetTemplate}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors shadow-sm"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>Load NEET UG Syllabus Template</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-700"
+                >
+                  <Plus className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Create First Chapter</span>
+                </button>
+              </div>
+            </div>
+          ) : filteredTopics.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-400">
               No topics match current search and filter criteria.
             </div>

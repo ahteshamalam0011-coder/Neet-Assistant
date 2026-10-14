@@ -15,6 +15,8 @@ import {
   Play,
   RotateCcw,
   Zap,
+  BookOpen,
+  Plus,
 } from 'lucide-react';
 
 interface DashboardOverviewProps {
@@ -24,6 +26,7 @@ interface DashboardOverviewProps {
   onStartFocus: () => void;
   onTogglePlanItem: (planId: string) => void;
   onQuickAddPlanItem: (task: string, subject: any) => void;
+  onLoadNeetTemplate?: () => void;
 }
 
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
@@ -33,6 +36,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   onStartFocus,
   onTogglePlanItem,
   onQuickAddPlanItem,
+  onLoadNeetTemplate,
 }) => {
   const todayStr = new Date().toISOString().split('T')[0];
   const todayPlan = state.dailyPlans[todayStr] || [];
@@ -53,6 +57,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       : scholarLevel >= 2
       ? 'Analytical Thinker'
       : 'Diligent Inquirer';
+
+  const isFresh = state.topics.length === 0;
 
   return (
     <div className="space-y-8 pb-16">
@@ -80,7 +86,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
             {/* Quick Action & Scholar Status Bar */}
             <div className="pt-6 border-t border-slate-800/80 mt-6 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={onStartFocus}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs rounded-lg transition-colors whitespace-nowrap shadow-sm"
@@ -88,13 +94,24 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   <Play className="w-3.5 h-3.5 fill-current" />
                   <span>Start Focus Session</span>
                 </button>
-                <button
-                  onClick={() => onNavigate('revision')}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-750 rounded-lg transition-colors whitespace-nowrap border border-slate-700/60"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Review {answers.dueFlashcards.length} Due Cards</span>
-                </button>
+
+                {answers.dueFlashcards.length > 0 ? (
+                  <button
+                    onClick={() => onNavigate('revision')}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-750 rounded-lg transition-colors whitespace-nowrap border border-slate-700/60"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Review {answers.dueFlashcards.length} Due Cards</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onNavigate('revision')}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-750 rounded-lg transition-colors whitespace-nowrap border border-slate-700/60"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Create Flashcard</span>
+                  </button>
+                )}
               </div>
 
               {/* Scholar Level Indicator */}
@@ -133,6 +150,44 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         </div>
       </div>
 
+      {/* Fresh Start Setup Banner (Only shown if user has zero syllabus topics) */}
+      {isFresh && (
+        <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900/90 to-emerald-950/20 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-sm">
+          <div className="space-y-1.5 max-w-xl">
+            <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 font-semibold">
+              <Sparkles className="w-4 h-4" />
+              <span>Clean Slate · Personal Learning OS Ready</span>
+            </div>
+            <h3 className="text-base sm:text-lg font-bold text-white">
+              Initialize Your Syllabus Architecture
+            </h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Start completely fresh by adding your custom subjects and chapters, or load the pre-structured NEET UG syllabus template (Physics, Chemistry, Botany, Zoology) to activate automatic priority tracking.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            {onLoadNeetTemplate && (
+              <button
+                onClick={onLoadNeetTemplate}
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors shadow-sm whitespace-nowrap"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Load NEET Syllabus Template</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => onNavigate('syllabus')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-700 whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4 text-emerald-400" />
+              <span>Add Custom Topic</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* The 8 Daily Answers: Grid Section */}
       <div>
         <div className="flex items-center justify-between mb-4">
@@ -167,14 +222,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   </p>
                 </>
               ) : (
-                <p className="text-xs text-slate-400">All current syllabus topics up to date.</p>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Add syllabus units to calculate your highest priority study interventions based on retention and weightage.
+                </p>
               )}
             </div>
             <button
               onClick={() => onNavigate('syllabus')}
               className="text-xs font-medium text-emerald-400 hover:text-emerald-300 flex items-center gap-1 mt-2 pt-2 border-t border-slate-800/80"
             >
-              <span>Explore Priority Queue</span>
+              <span>{isFresh ? 'Configure Syllabus' : 'Explore Priority Queue'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -199,8 +256,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   </p>
                 </>
               ) : (
-                <p className="text-xs text-slate-300">
-                  No familiarity trap detected. Your self-assessments match test results.
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  No familiarity traps detected. Record MCQ practice logs to uncover differences between feeling confident and actual test accuracy.
                 </p>
               )}
             </div>
@@ -208,7 +265,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               onClick={() => onNavigate('syllabus')}
               className="text-xs font-medium text-amber-400 hover:text-amber-300 flex items-center gap-1 mt-2 pt-2 border-t border-slate-800/80"
             >
-              <span>View Trap Diagnostics</span>
+              <span>View Mastery Matrix</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -226,19 +283,23 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 </span>
                 <span className="text-xs text-slate-400">cards due today</span>
               </div>
-              {answers.decayingTopics[0] ? (
+              {answers.dueFlashcards.length > 0 ? (
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  Decay threshold reached for <span className="text-white font-medium">{answers.decayingTopics[0].name}</span> (not reviewed in {answers.decayingTopics[0].retentionDecayDays}d).
+                  Memory items scheduled for recall. Review today to strengthen neural pathways.
                 </p>
               ) : (
-                <p className="text-xs text-slate-300">Memory retention high across all active units.</p>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {state.flashcards.length === 0
+                    ? 'Create your first flashcard to start SuperMemo SM-2 active recall.'
+                    : 'All memory items refreshed. No cards due for review today.'}
+                </p>
               )}
             </div>
             <button
               onClick={() => onNavigate('revision')}
               className="text-xs font-medium text-sky-400 hover:text-sky-300 flex items-center gap-1 mt-2 pt-2 border-t border-slate-800/80"
             >
-              <span>Launch Active Recall</span>
+              <span>{state.flashcards.length === 0 ? 'Add First Card' : 'Launch Active Recall'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -250,21 +311,29 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 <Zap className="w-4 h-4" />
                 <span>4. Where am I losing marks?</span>
               </div>
-              <div className="text-sm font-bold text-white mb-1">
-                Culprit: {answers.negativeMarksDiagnosis.primaryCulprit}
-              </div>
-              <div className="text-xs text-rose-300/90 font-mono mb-2">
-                -{answers.negativeMarksDiagnosis.totalLostMarks} marks lost in last mock test
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
-                {answers.negativeMarksDiagnosis.actionableRemedy}
-              </p>
+              {state.mockTests.length > 0 ? (
+                <>
+                  <div className="text-sm font-bold text-white mb-1">
+                    Culprit: {answers.negativeMarksDiagnosis.primaryCulprit}
+                  </div>
+                  <div className="text-xs text-rose-300/90 font-mono mb-2">
+                    -{answers.negativeMarksDiagnosis.totalLostMarks} marks lost in last mock test
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+                    {answers.negativeMarksDiagnosis.actionableRemedy}
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  No mock tests recorded yet. Log your first test to reveal whether marks are lost to concepts, calculation slips, or time panic.
+                </p>
+              )}
             </div>
             <button
               onClick={() => onNavigate('analytics')}
               className="text-xs font-medium text-rose-400 hover:text-rose-300 flex items-center gap-1 mt-2 pt-2 border-t border-slate-800/80"
             >
-              <span>Mock Test Breakdown</span>
+              <span>{state.mockTests.length === 0 ? 'Log First Mock Test' : 'Mock Test Breakdown'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -291,18 +360,24 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     {answers.highestRoiTasks[0].why}
                   </p>
                 </>
-              ) : null}
+              ) : (
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Populate your syllabus to rank tasks by marks gained per hour invested.
+                </p>
+              )}
             </div>
             <button
               onClick={() => {
                 if (answers.highestRoiTasks[0]) {
-                  onQuickAddPlanItem(answers.highestRoiTasks[0].title, 'Physics');
+                  onQuickAddPlanItem(answers.highestRoiTasks[0].title, 'General');
                   onNavigate('planner');
+                } else {
+                  onNavigate('syllabus');
                 }
               }}
               className="text-xs font-medium text-violet-400 hover:text-violet-300 flex items-center gap-1 mt-2 pt-2 border-t border-slate-800/80"
             >
-              <span>Add to Today's Plan</span>
+              <span>{answers.highestRoiTasks[0] ? "Add to Today's Plan" : 'Setup Syllabus'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -316,7 +391,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               </div>
               <div className="flex items-baseline gap-2 mb-1">
                 <span className="text-2xl font-bold text-white font-mono tabular-nums">
-                  {Math.round(answers.focusStats.todayMinutes / 60 * 10) / 10}h
+                  {Math.round((answers.focusStats.todayMinutes / 60) * 10) / 10}h
                 </span>
                 <span className="text-xs text-slate-400">
                   of {answers.focusStats.targetHours}h goal today
@@ -348,22 +423,30 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 <Flame className="w-4 h-4" />
                 <span>7. Progress vs Past Self</span>
               </div>
-              <div className="flex items-baseline gap-2 mb-1">
-                <span className="text-2xl font-bold text-emerald-400 font-mono tabular-nums">
-                  {answers.improvementMetrics.scoreDeltaLastTwoMocks >= 0 ? '+' : ''}
-                  {answers.improvementMetrics.scoreDeltaLastTwoMocks}
-                </span>
-                <span className="text-xs text-slate-400">marks delta (Mock #02 → #03)</span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Overall practice accuracy is <span className="font-mono text-white font-medium">{answers.improvementMetrics.accuracyTrend}%</span> across {answers.improvementMetrics.totalQuestionsLogged} logged questions.
-              </p>
+              {state.mockTests.length >= 2 ? (
+                <>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-2xl font-bold text-emerald-400 font-mono tabular-nums">
+                      {answers.improvementMetrics.scoreDeltaLastTwoMocks >= 0 ? '+' : ''}
+                      {answers.improvementMetrics.scoreDeltaLastTwoMocks}
+                    </span>
+                    <span className="text-xs text-slate-400">marks delta between last 2 mocks</span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Practice accuracy: <span className="font-mono text-white font-medium">{answers.improvementMetrics.accuracyTrend}%</span> across {answers.improvementMetrics.totalQuestionsLogged} questions.
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Log at least 2 mock tests or practice batches to track your accuracy growth curve and personal bests.
+                </p>
+              )}
             </div>
             <button
               onClick={() => onNavigate('analytics')}
               className="text-xs font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-2 pt-2 border-t border-slate-800/80"
             >
-              <span>View Benchmark Trends</span>
+              <span>View Practice Logs</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -383,7 +466,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               onClick={() => onNavigate('planner')}
               className="text-xs font-medium text-amber-400 hover:text-amber-300 flex items-center gap-1 mt-2 pt-2 border-t border-slate-800/80"
             >
-              <span>Adjust Tomorrow's Blocks</span>
+              <span>Daily Planner & Debrief</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -413,50 +496,62 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           </div>
 
           <div className="space-y-2.5">
-            {todayPlan.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => onTogglePlanItem(item.id)}
-                className={`p-3.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-4 ${
-                  item.completed
-                    ? 'bg-slate-950/40 border-slate-850 opacity-60'
-                    : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
-                      item.completed
-                        ? 'bg-emerald-500 text-slate-950'
-                        : 'border border-slate-600 hover:border-emerald-400'
-                    }`}
-                  >
-                    {item.completed && <CheckCircle2 className="w-4 h-4 stroke-[3]" />}
-                  </div>
-
-                  <div>
+            {todayPlan.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-lg space-y-2">
+                <p>No study blocks scheduled for today.</p>
+                <button
+                  onClick={() => onNavigate('planner')}
+                  className="text-emerald-400 hover:underline font-medium"
+                >
+                  Schedule today's first focus block
+                </button>
+              </div>
+            ) : (
+              todayPlan.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => onTogglePlanItem(item.id)}
+                  className={`p-3.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-4 ${
+                    item.completed
+                      ? 'bg-slate-950/40 border-slate-850 opacity-60'
+                      : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
                     <div
-                      className={`text-sm font-medium ${
-                        item.completed ? 'line-through text-slate-400' : 'text-slate-100'
+                      className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
+                        item.completed
+                          ? 'bg-emerald-500 text-slate-950'
+                          : 'border border-slate-600 hover:border-emerald-400'
                       }`}
                     >
-                      {item.task}
+                      {item.completed && <CheckCircle2 className="w-4 h-4 stroke-[3]" />}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-400 font-mono mt-0.5">
-                      <span>{item.timeSlot}</span>
-                      <span aria-hidden="true">·</span>
-                      <span>{item.subject}</span>
-                      <span aria-hidden="true">·</span>
-                      <span>~{item.estimatedMinutes}m</span>
+
+                    <div>
+                      <div
+                        className={`text-sm font-medium ${
+                          item.completed ? 'line-through text-slate-400' : 'text-slate-100'
+                        }`}
+                      >
+                        {item.task}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-slate-400 font-mono mt-0.5">
+                        <span>{item.timeSlot}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>{item.subject}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>~{item.estimatedMinutes}m</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="text-xs font-mono text-slate-400 uppercase tracking-wider shrink-0">
-                  {item.type.replace('_', ' ')}
+                  <div className="text-xs font-mono text-slate-400 uppercase tracking-wider shrink-0">
+                    {item.type.replace('_', ' ')}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -473,34 +568,40 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             </div>
 
             {/* Level 1-5 mastery visual bar */}
-            <div className="space-y-3 mb-6">
-              {[
-                { level: 5, label: 'Level 5 · Exam Ready (≥90%)', color: 'bg-emerald-400' },
-                { level: 4, label: 'Level 4 · Mastered', color: 'bg-teal-400' },
-                { level: 3, label: 'Level 3 · Competent (~70%)', color: 'bg-sky-400' },
-                { level: 2, label: 'Level 2 · Familiar (Trap Risk)', color: 'bg-amber-400' },
-                { level: 1, label: 'Level 1 · Novice / Exposed', color: 'bg-rose-400' },
-              ].map((tier) => {
-                const count = answers.improvementMetrics.masteryLevelDistribution[tier.level] || 0;
-                const pct = state.topics.length > 0 ? Math.round((count / state.topics.length) * 100) : 0;
-                return (
-                  <div key={tier.level} className="text-xs">
-                    <div className="flex items-center justify-between mb-1 text-slate-300">
-                      <span>{tier.label}</span>
-                      <span className="font-mono tabular-nums text-slate-400">
-                        {count} units ({pct}%)
-                      </span>
+            {state.topics.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-lg mb-6">
+                No syllabus units added yet. Add topics to see your level 1-5 mastery distribution.
+              </div>
+            ) : (
+              <div className="space-y-3 mb-6">
+                {[
+                  { level: 5, label: 'Level 5 · Exam Ready (≥90%)', color: 'bg-emerald-400' },
+                  { level: 4, label: 'Level 4 · Mastered', color: 'bg-teal-400' },
+                  { level: 3, label: 'Level 3 · Competent (~70%)', color: 'bg-sky-400' },
+                  { level: 2, label: 'Level 2 · Familiar (Trap Risk)', color: 'bg-amber-400' },
+                  { level: 1, label: 'Level 1 · Novice / Exposed', color: 'bg-rose-400' },
+                ].map((tier) => {
+                  const count = answers.improvementMetrics.masteryLevelDistribution[tier.level] || 0;
+                  const pct = state.topics.length > 0 ? Math.round((count / state.topics.length) * 100) : 0;
+                  return (
+                    <div key={tier.level} className="text-xs">
+                      <div className="flex items-center justify-between mb-1 text-slate-300">
+                        <span>{tier.label}</span>
+                        <span className="font-mono tabular-nums text-slate-400">
+                          {count} units ({pct}%)
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${tier.color} transition-all duration-300`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${tier.color} transition-all duration-300`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Scientific Blueprint Card */}
             <div className="relative rounded-lg overflow-hidden border border-slate-800 bg-slate-950">

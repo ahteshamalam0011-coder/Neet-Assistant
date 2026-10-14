@@ -59,7 +59,7 @@ export interface DailyOSAnswers {
   // Question 7: Am I improving compared with previous performance?
   improvementMetrics: {
     scoreDeltaLastTwoMocks: number;
-    accuracyTrend: number; // e.g. +4.1%
+    accuracyTrend: number; // e.g. 85%
     totalQuestionsLogged: number;
     masteryLevelDistribution: Record<number, number>;
     consistencyScorePercent: number;
@@ -76,12 +76,7 @@ export function computeDailyOSAnswers(
   const { topics, flashcards, mockTests, practiceLogs, focusSessions, settings, habits } = state;
 
   // 1. WHAT SHOULD I STUDY NEXT?
-  // Priority formula:
-  // Weightage Multiplier: High Yield = 3.0, Medium = 2.0, Standard = 1.0
-  // Mastery Gap: (5 - masteryLevel) * 2
-  // Accuracy Deficit: Math.max(0, 85 - verifiedAccuracy) / 10
-  // Recency Decay: days since last study / 5
-  const priorityList: PriorityRecommendation[] = topics.map(topic => {
+  const priorityList: PriorityRecommendation[] = topics.map((topic) => {
     const weightageMult = topic.weightage === 'High Yield' ? 3.0 : topic.weightage === 'Medium' ? 2.0 : 1.0;
     const masteryDeficit = (5 - topic.masteryLevel) * 2.5;
     const accuracyDeficit = Math.max(0, 85 - topic.verifiedAccuracy) * 0.15;
@@ -89,14 +84,13 @@ export function computeDailyOSAnswers(
     const daysSince = getDaysBetween(topic.lastStudiedDate, today);
     const decayFactor = Math.min(daysSince * 0.4, 6);
 
-    // Negative marks penalty from mock tests if found
     const subjectMocks = mockTests.length > 0 ? mockTests[0].subjects : {};
     let mockDeficitPenalty = 0;
-    if (topic.subject === 'Physics' && subjectMocks.Physics && subjectMocks.Physics.errorBreakdown.calculation_error > 3) {
+    if (topic.subject === 'Physics' && subjectMocks.Physics && subjectMocks.Physics.errorBreakdown?.calculation_error > 3) {
       mockDeficitPenalty += 2;
     }
 
-    const priorityScore = (weightageMult * 3.5) + masteryDeficit + accuracyDeficit + decayFactor + mockDeficitPenalty;
+    const priorityScore = weightageMult * 3.5 + masteryDeficit + accuracyDeficit + decayFactor + mockDeficitPenalty;
 
     let reason = `${topic.weightage} unit with ${topic.verifiedAccuracy}% practice accuracy.`;
     let action: PriorityRecommendation['recommendedAction'] = 'Solve 30 MCQs';
@@ -131,9 +125,13 @@ export function computeDailyOSAnswers(
 
   // 2. FAMILIARITY TRAPS (Perceived confidence high vs verified practice accuracy low)
   const familiarityTraps: FamiliarityTrapTopic[] = topics
-    .filter(t => t.perceivedConfidence >= 3 && (t.perceivedConfidence - t.masteryLevel >= 1 || t.verifiedAccuracy < 68))
-    .map(t => {
-      const gap = (t.perceivedConfidence * 20) - t.verifiedAccuracy;
+    .filter(
+      (t) =>
+        t.perceivedConfidence >= 3 &&
+        (t.perceivedConfidence - t.masteryLevel >= 1 || t.verifiedAccuracy < 68)
+    )
+    .map((t) => {
+      const gap = t.perceivedConfidence * 20 - t.verifiedAccuracy;
       return {
         topic: t,
         gap,
@@ -143,19 +141,19 @@ export function computeDailyOSAnswers(
     })
     .sort((a, b) => b.gap - a.gap);
 
-  const genuineMasteredTopics = topics.filter(t => t.masteryLevel >= 4 && t.verifiedAccuracy >= 85);
+  const genuineMasteredTopics = topics.filter((t) => t.masteryLevel >= 4 && t.verifiedAccuracy >= 85);
 
   // 3. WHAT AM I FORGETTING?
-  const dueFlashcards = flashcards.filter(c => c.dueDate <= today);
+  const dueFlashcards = flashcards.filter((c) => c.dueDate <= today);
   const decayingTopics = topics
-    .filter(t => getDaysBetween(t.lastStudiedDate, today) >= 7)
+    .filter((t) => getDaysBetween(t.lastStudiedDate, today) >= 7)
     .sort((a, b) => getDaysBetween(b.lastStudiedDate, today) - getDaysBetween(a.lastStudiedDate, today));
 
   // 4. WHERE AM I LOSING MARKS AND WHY?
   const negativeMarksDiagnosis: NegativeMarksDiagnosis = computeMockTestDiagnosis(mockTests);
 
-  // 5. HIGHEST ROI TASKS (Marks gained per hour invested)
-  const highestRoiTasks = priorityList.slice(0, 3).map(p => ({
+  // 5. HIGHEST ROI TASKS
+  const highestRoiTasks = priorityList.slice(0, 3).map((p) => ({
     title: `${p.recommendedAction} in ${p.topic.name}`,
     roiScore: Number((p.expectedMarksGain / (p.recommendedAction === 'Deep Concept Study' ? 1.5 : 1.0)).toFixed(1)),
     estimatedMinutes: p.recommendedAction === 'Deep Concept Study' ? 90 : 60,
@@ -164,14 +162,14 @@ export function computeDailyOSAnswers(
   }));
 
   // 6. HOW MUCH FOCUSED WORK AM I COMPLETING?
-  const todaySessions = focusSessions.filter(s => s.date === today);
+  const todaySessions = focusSessions.filter((s) => s.date === today);
   const todayMinutes = todaySessions.reduce((acc, s) => acc + s.durationMinutes, 0);
 
   const sevenDaysAgo = new Date(today);
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
 
-  const recentSessions = focusSessions.filter(s => s.date >= sevenDaysAgoStr && s.date <= today);
+  const recentSessions = focusSessions.filter((s) => s.date >= sevenDaysAgoStr && s.date <= today);
   const last7DaysMinutes = recentSessions.reduce((acc, s) => acc + s.durationMinutes, 0);
   const dailyAverageHours = Number(((last7DaysMinutes / 7) / 60).toFixed(1));
   const targetMinutes = (settings.dailyFocusTargetHours || 6) * 60;
@@ -184,37 +182,41 @@ export function computeDailyOSAnswers(
   }
   const totalQuestionsLogged = practiceLogs.reduce((acc, l) => acc + l.questionsAttempted, 0);
   const overallCorrect = practiceLogs.reduce((acc, l) => acc + l.correctCount, 0);
-  const accuracyTrend = totalQuestionsLogged > 0 ? Math.round((overallCorrect / totalQuestionsLogged) * 100) : 80;
+  const accuracyTrend = totalQuestionsLogged > 0 ? Math.round((overallCorrect / totalQuestionsLogged) * 100) : 0;
 
   const masteryDist: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-  topics.forEach(t => {
+  topics.forEach((t) => {
     masteryDist[t.masteryLevel] = (masteryDist[t.masteryLevel] || 0) + 1;
   });
 
-  // Consistency Score based on habit completion in last 7 days
-  let totalHabitSlots = habits.length * 7;
+  const totalHabitSlots = (habits || []).length * 7;
   let habitsCompleted = 0;
-  habits.forEach(h => {
-    h.completedDates.forEach(d => {
+  (habits || []).forEach((h) => {
+    (h.completedDates || []).forEach((d) => {
       if (d >= sevenDaysAgoStr && d <= today) habitsCompleted++;
     });
   });
-  const consistencyScorePercent = totalHabitSlots > 0 ? Math.min(100, Math.round((habitsCompleted / totalHabitSlots) * 100)) : 85;
+  const consistencyScorePercent = totalHabitSlots > 0 ? Math.min(100, Math.round((habitsCompleted / totalHabitSlots) * 100)) : 0;
 
   // 8. WHAT SHOULD I CHANGE ABOUT TOMORROW'S PLAN?
   const adaptiveSuggestions: string[] = [];
-  if (familiarityTraps.length > 0) {
+  if (topics.length === 0) {
+    adaptiveSuggestions.push('Add your initial syllabus units or load the NEET syllabus template to activate intelligent study scheduling.');
+  } else if (familiarityTraps.length > 0) {
     adaptiveSuggestions.push(`Replace passive reading of "${familiarityTraps[0].topic.name}" with 25 closed-book test questions to break the familiarity illusion.`);
   }
+
   if (dueFlashcards.length > 0) {
     adaptiveSuggestions.push(`Complete the ${dueFlashcards.length} due spaced-repetition cards first thing in the morning before starting new theory.`);
   }
-  if (negativeMarksDiagnosis.primaryCulprit === 'Calculation Errors') {
+
+  if (mockTests.length > 0 && negativeMarksDiagnosis.primaryCulprit === 'Calculation Errors') {
     adaptiveSuggestions.push(`In Physics drills tomorrow, write step-by-step scratchpad calculations with explicit metric units to eliminate calculation slips.`);
-  } else if (negativeMarksDiagnosis.primaryCulprit === 'Memory Slips') {
-    adaptiveSuggestions.push(`Schedule a 30-minute high-yield exception review for Chemistry and Biology before dinner.`);
   }
-  if (todayMinutes < targetMinutes * 0.7) {
+
+  if (todayMinutes === 0) {
+    adaptiveSuggestions.push(`Schedule your first 50-minute deep work block today to establish daily momentum.`);
+  } else if (todayMinutes < targetMinutes * 0.7) {
     adaptiveSuggestions.push(`Split tomorrow into three 90-minute Pomodoro blocks with protected phone-free time to hit the ${settings.dailyFocusTargetHours}h focus goal.`);
   } else {
     adaptiveSuggestions.push(`Strong focus maintained today (${Math.round(todayMinutes / 60)}h). Ensure 7+ hours of sleep tonight for memory consolidation.`);
@@ -247,7 +249,7 @@ export function computeDailyOSAnswers(
 }
 
 function computeMockTestDiagnosis(mockTests: MockTest[]): NegativeMarksDiagnosis {
-  if (mockTests.length === 0) {
+  if (!mockTests || mockTests.length === 0) {
     return {
       totalLostMarks: 0,
       primaryCulprit: 'No mock tests logged yet',
@@ -271,14 +273,14 @@ function computeMockTestDiagnosis(mockTests: MockTest[]): NegativeMarksDiagnosis
 
   Object.entries(latest.subjects || {}).forEach(([subj, data]) => {
     if (!data) return;
-    const errors = data.errorBreakdown;
+    const errors = data.errorBreakdown || ({} as any);
     totalCounts['Conceptual Gaps'] += errors.conceptual_gap || 0;
     totalCounts['Memory Slips'] += errors.memory_slip || 0;
     totalCounts['Calculation Errors'] += errors.calculation_error || 0;
     totalCounts['Misread Questions'] += errors.misread_question || 0;
     totalCounts['Time Panic'] += errors.time_panic || 0;
 
-    const lostInSubject = (data.incorrect || 0) * 5; // NEET: 4 marks missed + 1 negative mark = 5 mark opportunity loss!
+    const lostInSubject = (data.incorrect || 0) * 5;
     if (lostInSubject > maxSubjectLoss) {
       maxSubjectLoss = lostInSubject;
       subjectMostVulnerable = subj;
@@ -293,11 +295,15 @@ function computeMockTestDiagnosis(mockTests: MockTest[]): NegativeMarksDiagnosis
 
   Object.entries(totalCounts).forEach(([reason, count]) => {
     percentageByReason[reason] = totalErrors > 0 ? Math.round((count / totalErrors) * 100) : 0;
-    if (count > highestCount) {
+    if (count > highestCount && count > 0) {
       highestCount = count;
       primaryCulprit = reason;
     }
   });
+
+  if (totalErrors === 0) {
+    primaryCulprit = 'No errors recorded in test';
+  }
 
   let remedy = `Allocate dedicated scratchpad practice for ${subjectMostVulnerable}. Do not rush multi-step algebra.`;
   if (primaryCulprit === 'Conceptual Gaps') {
@@ -309,7 +315,7 @@ function computeMockTestDiagnosis(mockTests: MockTest[]): NegativeMarksDiagnosis
   }
 
   return {
-    totalLostMarks: latest.totalNegativeMarks,
+    totalLostMarks: latest.totalNegativeMarks || 0,
     primaryCulprit,
     percentageByReason,
     subjectMostVulnerable,
@@ -317,7 +323,8 @@ function computeMockTestDiagnosis(mockTests: MockTest[]): NegativeMarksDiagnosis
   };
 }
 
-function getDaysBetween(d1Str: string, d2Str: string): number {
+function getDaysBetween(d1Str?: string, d2Str?: string): number {
+  if (!d1Str || !d2Str) return 0;
   try {
     const t1 = new Date(d1Str).getTime();
     const t2 = new Date(d2Str).getTime();

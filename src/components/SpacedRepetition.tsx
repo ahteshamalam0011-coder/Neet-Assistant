@@ -152,7 +152,26 @@ export const SpacedRepetition: React.FC<SpacedRepetitionProps> = ({
           </div>
         </div>
 
-        {dueCards.length === 0 || sessionCompleted ? (
+        {flashcards.length === 0 ? (
+          <div className="py-12 text-center space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 text-sky-400 flex items-center justify-center mx-auto">
+              <Brain className="w-6 h-6" />
+            </div>
+            <h4 className="text-base font-bold text-white">
+              Spaced Repetition Deck is Empty
+            </h4>
+            <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+              Create your first flashcard with front/back cues, formulas, and mnemonics to activate automated SuperMemo SM-2 interval expansion.
+            </p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg transition-colors shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create First Flashcard</span>
+            </button>
+          </div>
+        ) : dueCards.length === 0 || sessionCompleted ? (
           <div className="py-12 text-center space-y-3">
             <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto">
               <Check className="w-6 h-6 stroke-[3]" />
@@ -303,7 +322,14 @@ export const SpacedRepetition: React.FC<SpacedRepetitionProps> = ({
         </div>
 
         <div className="bg-slate-900/30 rounded-xl border border-slate-800 divide-y divide-slate-800">
-          {filteredCards.map((card) => {
+          {filteredCards.length === 0 ? (
+            <div className="p-8 text-center text-xs text-slate-400">
+              {flashcards.length === 0
+                ? "No flashcards in your deck yet. Click 'New Flashcard' above to create your first card."
+                : 'No flashcards match current search query.'}
+            </div>
+          ) : (
+            filteredCards.map((card) => {
             const isDue = isCardDue(card, todayStr);
             return (
               <div key={card.id} className="p-4 hover:bg-slate-900/60 transition-colors space-y-1.5">
@@ -328,7 +354,8 @@ export const SpacedRepetition: React.FC<SpacedRepetitionProps> = ({
                 <div className="text-xs text-slate-300 line-clamp-1">{card.back}</div>
               </div>
             );
-          })}
+          })
+          )}
         </div>
       </div>
 

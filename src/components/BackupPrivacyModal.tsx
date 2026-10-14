@@ -4,8 +4,9 @@ import {
   exportPlainJsonBackup,
   exportEncryptedBackup,
   decryptBackup,
-  INITIAL_STATE,
+  FRESH_INITIAL_STATE,
 } from '../utils/storage';
+import { INITIAL_NEET_TOPICS } from '../data/defaultSyllabus';
 import {
   ShieldCheck,
   Download,
@@ -101,10 +102,20 @@ export const BackupPrivacyModal: React.FC<BackupPrivacyModalProps> = ({
     e.target.value = '';
   };
 
-  const handleResetToDefault = () => {
-    if (window.confirm('Reset all records to standard NEET starter blueprint? This will overwrite local changes.')) {
-      onRestoreState(INITIAL_STATE);
-      setStatusMessage({ text: 'Reset to default NEET blueprint completed.' });
+  const handleResetToFresh = () => {
+    if (window.confirm('Clear all local data and start completely fresh? This cannot be undone unless you have a backup.')) {
+      onRestoreState(FRESH_INITIAL_STATE);
+      setStatusMessage({ text: 'All data cleared. Starting fresh canvas!' });
+    }
+  };
+
+  const handleLoadNeetTemplate = () => {
+    if (window.confirm('Populate syllabus with standard NEET UG topics (Physics, Chemistry, Botany, Zoology)?')) {
+      onRestoreState({
+        ...state,
+        topics: INITIAL_NEET_TOPICS,
+      });
+      setStatusMessage({ text: 'NEET UG Syllabus topics loaded into your study OS.' });
     }
   };
 
@@ -240,15 +251,25 @@ export const BackupPrivacyModal: React.FC<BackupPrivacyModalProps> = ({
         </div>
 
         {/* Danger zone / Reset default */}
-        <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-          <button
-            onClick={handleResetToDefault}
-            className="text-slate-500 hover:text-rose-400 flex items-center gap-1 transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Reset to Starter Blueprint</span>
-          </button>
-          <span className="font-mono text-[11px]">Version 1.0.0</span>
+        <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleResetToFresh}
+              className="text-slate-500 hover:text-rose-400 flex items-center gap-1.5 transition-colors font-medium"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Clear All & Start Fresh</span>
+            </button>
+
+            <button
+              onClick={handleLoadNeetTemplate}
+              className="text-slate-400 hover:text-emerald-400 flex items-center gap-1.5 transition-colors font-medium"
+            >
+              <span>Load NEET Syllabus</span>
+            </button>
+          </div>
+
+          <span className="font-mono text-[11px]">Version 2.0.0 · Local-First</span>
         </div>
       </div>
     </div>
